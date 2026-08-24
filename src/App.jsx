@@ -128,6 +128,10 @@ function App() {
       <div className='bottom' id='bottom-div'>
         <h1>History</h1>
       </div>
+
+      <div>
+        <h1>Test</h1>
+      </div>
     </div>
     </>
   )
