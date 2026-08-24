@@ -111,11 +111,28 @@ Styles for element classes.
   gap: 12px;
 }
 
+.logout-button {
+  margin-left: auto;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: #ffffff;
+  background-color: transparent;
+  border: 1px solid #ffffff;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.logout-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
 /*
 Styles for element ids.
 */
 #title-div{
-  margin-bottom: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 #top-div{

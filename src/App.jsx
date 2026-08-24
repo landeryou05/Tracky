@@ -94,6 +94,15 @@ function App() {
     <div className='content-div'>
       <div className='title' id='title-div'>
         <img src={trackyLogo} alt="Tracky" className="tracky-logo" />
+        <button
+          type="button"
+          className="logout-button"
+          onClick={() => {
+            window.location.href = "https://auth.yourdomain.com/outpost.goauthentik.io/sign_out?rd=https://tracky.yourdomain.com"
+          }}
+        >
+          Log out
+        </button>
       </div>
 
       <div className='top' id='top-div'>
