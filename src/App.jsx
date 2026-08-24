@@ -98,7 +98,7 @@ function App() {
           type="button"
           className="logout-button"
           onClick={() => {
-            window.location.href="https://auth.matthewlanderyou.dedyn.io/outpost.goauthentik.io/sign_out?rd=https://tracky.matthewlanderyou.dedyn.io/?X-authentik-auth-callback=true"
+            window.location.href="https://tracky.matthewlanderyou.dedyn.io/outpost.goauthentik.io/sign_out?rd=https://tracky.matthewlanderyou.dedyn.io/"
           }}
         >
           Log out
