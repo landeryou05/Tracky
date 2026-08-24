@@ -22,9 +22,13 @@ Styles for element classes.
 }
 
 .content-div {
-  border-left: 2px solid #ffffff;
-  padding-left: 16px;
   text-align: left;
+}
+
+/* Give every top-level section its own line down the side */
+.content-div > div {
+  border-left: 2px solid #ffffff;
+  padding-left: 45px;
 }
 
 .data-select{
@@ -39,6 +43,7 @@ Styles for element classes.
   width: 180px;
   font-size: 17px;
   margin-top: 25px;
+  margin-bottom: 30px;
   padding: 7px;
 }
 

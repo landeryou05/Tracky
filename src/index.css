@@ -1,8 +1,8 @@
 /* Defining variables in root for reusability */
 :root {
   --text: #fafafa;
-  --bg: #0d1117;
-  --bg-secondary: #161b22;
+  --bg: #1b2941;
+  --bg-secondary: #1e2735;
   --shadow:
     rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
 
