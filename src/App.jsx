@@ -98,7 +98,7 @@ function App() {
           type="button"
           className="logout-button"
           onClick={() => {
-            window.location.href = "https://auth.yourdomain.com/outpost.goauthentik.io/sign_out?rd=https://tracky.yourdomain.com"
+            window.location.href = "https://10.0.0.39:5001/outpost.goauthentik.io/sign_out?rd=https://tracky.matthewlanderyou.dedyn.io/"
           }}
         >
           Log out
