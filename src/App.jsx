@@ -6,6 +6,9 @@ import './App.css'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 
+// Import Images
+import trackyLogo from '../Images/tracky-logo.png'
+
 // Reusable hours+minutes field (used for durations AND clock times).
 function TimeField({ title, hoursMax, value, onChange, idPrefix, className = '' }) {
   return (
@@ -90,11 +93,14 @@ function App() {
     <>
     <div className='content-div'>
       <div className='title' id='title-div'>
-        <h1>Tracky</h1>
+        <img src={trackyLogo} alt="Tracky" className="tracky-logo" />
       </div>
 
       <div className='top' id='top-div'>
-        <h1>Enter Information</h1>
+        <div className="top-heading">
+          <h1>Enter Information</h1>
+        </div>
+
         <DatePicker
           selected={startDate}
           onChange={(date) => setStartDate(date)}
