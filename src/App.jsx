@@ -98,14 +98,15 @@ function App() {
           type="button"
           className="logout-button"
           onClick={async () => {
+            // End the app-specific session (Tracky)
             try {
               await fetch(
                 "https://tracky.matthewlanderyou.dedyn.io/outpost.goauthentik.io/sign_out",
                 { mode: "no-cors", credentials: "include" }
               )
-            } catch (e) {
-            }
-            window.location.href = "https://auth.matthewlanderyou.dedyn.io/if/flow/default-authentication-flow/?next=/"
+            } catch (e) {}
+            // End the core Authentik session, then land back on Tracky
+            window.location.href = "https://tracky.matthewlanderyou.dedyn.io/flows/-/default/invalidation/?next=https%3A%2F%2Ftracky.matthewlanderyou.dedyn.io%2F"
           }}
         >
           Log out
