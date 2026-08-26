@@ -8,6 +8,13 @@ Applies font to all elements.
 */
 * {
   font-family: 'Montserrat', sans-serif;
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 /*
@@ -15,6 +22,7 @@ Styles for element classes.
 */
 .top-div-dateselector{
   width: 166px;
+  max-width: 100%;
   font-size: 17px;
   padding: 5px;
   margin-bottom: 10px;
@@ -23,6 +31,9 @@ Styles for element classes.
 
 .content-div {
   text-align: left;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 16px;
 }
 
 /* Give every top-level section its own line down the side, except the logo */
@@ -33,6 +44,7 @@ Styles for element classes.
 
 .data-select{
   width: 100px;
+  max-width: 100%;
   font-size: 17px;
   padding-top: 5px;
   padding-bottom: 5px;
@@ -41,6 +53,7 @@ Styles for element classes.
 
 .submit-button{
   width: 180px;
+  max-width: 100%;
   font-size: 17px;
   margin-top: 25px;
   margin-bottom: 30px;
@@ -50,6 +63,7 @@ Styles for element classes.
 .hours-row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 10px;
 }
@@ -62,6 +76,7 @@ Styles for element classes.
 .minutes-select-div {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 10px;
 }
@@ -86,6 +101,7 @@ Styles for element classes.
 .time-select,
 .miles-input {
   width: 100px;
+  max-width: 100%;
   height: 38px;
   font-size: 17px;
   padding: 5px;
@@ -97,6 +113,7 @@ Styles for element classes.
 
 .tracky-logo {
   height: 150px;
+  max-width: 100%;
   width: auto;
 }
 
@@ -108,6 +125,7 @@ Styles for element classes.
 .top-heading {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
@@ -120,6 +138,8 @@ Styles for element classes.
   border: 1px solid #ffffff;
   border-radius: 4px;
   text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .logout-button:hover {
@@ -133,9 +153,16 @@ Styles for element ids.
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 40px;
 }
 
 #top-div{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
   margin-bottom: 65px;
 }
 
@@ -147,9 +174,33 @@ Styles for element ids.
   margin-bottom: 65px;
 }
 
-#top-div{
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: flex-start; /* or 'center' if you want them centered instead */
+/*
+Responsive breakpoints for phones/small tablets.
+*/
+@media (max-width: 600px) {
+  .content-div {
+    padding: 0 12px;
+  }
+
+  .content-div > div:not(#title-div) {
+    padding-left: 20px;
+  }
+
+  .fields-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .tracky-logo {
+    height: 90px;
+  }
+
+  .submit-button,
+  .top-div-dateselector {
+    width: 100%;
+  }
+
+  #title-div {
+    margin-bottom: 24px;
+  }
 }
