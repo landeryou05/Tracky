@@ -94,23 +94,6 @@ function App() {
     <div className='content-div'>
       <div className='title' id='title-div'>
         <img src={trackyLogo} alt="Tracky" className="tracky-logo" />
-        <button
-          type="button"
-          className="logout-button"
-          onClick={async () => {
-            // End the app-specific session (Tracky)
-            try {
-              await fetch(
-                "https://tracky.matthewlanderyou.dedyn.io/outpost.goauthentik.io/sign_out",
-                { mode: "no-cors", credentials: "include" }
-              )
-            } catch (e) {}
-            // End the core Authentik session, then land back on Tracky
-            window.location.href = "https://tracky.matthewlanderyou.dedyn.io/flows/-/default/invalidation/?next=https%3A%2F%2Ftracky.matthewlanderyou.dedyn.io%2F"
-          }}
-        >
-          Log out
-        </button>
       </div>
 
       <div className='top' id='top-div'>
