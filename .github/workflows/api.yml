@@ -3,7 +3,8 @@ on:
   push:
     branches: [main]
     paths: ['api/**']
-
+  workflow_dispatch:
+  
 jobs:
   build:
     runs-on: ubuntu-24.04-arm
