@@ -1,5 +1,5 @@
 // Import React Packages.
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from 'react-oidc-context'
 import './App.css'
 
@@ -18,6 +18,54 @@ const toDateString = (d) => {
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
+}
+
+// YYYY-MM-DD -> local Date (no timezone shift).
+const fromDateString = (s) => {
+  const [y, m, d] = s.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+// "21/11/2026" style, with weekday.
+const prettyDate = (s) =>
+  fromDateString(s).toLocaleDateString('en-GB', {
+    weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric',
+  })
+
+// { hours, minutes } -> total minutes, or null if the field was left blank.
+const toMinutes = (t) => {
+  if (!t || (t.hours === '' && t.minutes === '')) return null
+  return (Number(t.hours) || 0) * 60 + (Number(t.minutes) || 0)
+}
+
+// Total minutes -> "7h 05m".
+const fmtMinutes = (mins) => {
+  if (mins == null || Number.isNaN(mins)) return '-'
+  const rounded = Math.round(mins)
+  const h = Math.floor(rounded / 60)
+  const m = String(rounded % 60).padStart(2, '0')
+  return `${h}h ${m}m`
+}
+
+// { hours, minutes } -> "07:30" (for clock times).
+const fmtClock = (t) => {
+  const mins = toMinutes(t)
+  if (mins == null) return '-'
+  return `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`
+}
+
+// Miles driven that day, or null if it can't be worked out.
+const milesFor = (d) => {
+  if (d.startMiles === '' || d.finishMiles === '' || d.startMiles == null || d.finishMiles == null) return null
+  const diff = Number(d.finishMiles) - Number(d.startMiles)
+  return diff >= 0 ? diff : null
+}
+
+// Average of the non-null values in a list.
+const average = (values) => {
+  const v = values.filter((x) => x != null)
+  if (v.length === 0) return null
+  return v.reduce((a, b) => a + b, 0) / v.length
 }
 
 // Reusable hours+minutes field (used for durations AND clock times).
@@ -104,17 +152,24 @@ function App() {
   // Message under the Submit button.
   const [status, setStatus] = useState('')
 
+  // Average Hours + History: how many days back to look, the rows, and a refresh counter.
+  const [rangeDays, setRangeDays] = useState(7)
+  const [history, setHistory] = useState([])
+  const [historyStatus, setHistoryStatus] = useState('')
+  const [refreshKey, setRefreshKey] = useState(0)
+
   const dateString = toDateString(startDate)
   const isAuthed = auth.isAuthenticated
+  const token = auth.user?.access_token
 
-  // LOADING: runs whenever the date changes, fills the form with what was saved.
+  // LOADING (single day): runs whenever the date changes, fills the form with what was saved.
   useEffect(() => {
     if (!isAuthed) return
     let cancelled = false
     setStatus('')
 
     fetch(`/api/logs?from=${dateString}&to=${dateString}`, {
-      headers: { Authorization: `Bearer ${auth.user.access_token}` },
+      headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
         if (!res.ok) throw new Error('load failed')
@@ -140,6 +195,48 @@ function App() {
     return () => { cancelled = true }
   }, [dateString, isAuthed])
 
+  // LOADING (range): fills Average Hours and History. Re-runs when the range
+  // changes or after a save (refreshKey).
+  useEffect(() => {
+    if (!isAuthed) return
+    let cancelled = false
+    setHistoryStatus('')
+
+    const today = new Date()
+    const from = new Date()
+    from.setDate(today.getDate() - (rangeDays - 1))
+
+    fetch(`/api/logs?from=${toDateString(from)}&to=${toDateString(today)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('load failed')
+        return res.json()
+      })
+      .then((rows) => {
+        if (cancelled) return
+        // Newest first for the history list.
+        setHistory([...rows].sort((a, b) => b.log_date.localeCompare(a.log_date)))
+      })
+      .catch(() => {
+        if (!cancelled) setHistoryStatus('Could not load history.')
+      })
+
+    return () => { cancelled = true }
+  }, [isAuthed, rangeDays, refreshKey])
+
+  // Averages worked out from the history rows.
+  const averages = useMemo(() => {
+    const entries = history.map((r) => r.data)
+    return {
+      days: entries.length,
+      work: average(entries.map((d) => toMinutes(d.workTime))),
+      drive: average(entries.map((d) => toMinutes(d.driveTime))),
+      rest: average(entries.map((d) => toMinutes(d.rest))),
+      miles: average(entries.map(milesFor)),
+    }
+  }, [history])
+
   // SAVING: runs when Submit is pressed.
   const handleSubmit = async () => {
     setStatus('Saving...')
@@ -148,13 +245,14 @@ function App() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${auth.user.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
         // THE PARCEL: all the form values packed up and sent to the API
         body: JSON.stringify({ cardIn, cardOut, startTime, finishTime, workTime, driveTime, rest, startMiles, finishMiles }),
       })
       if (!res.ok) throw new Error('save failed')
       setStatus('Saved')
+      setRefreshKey((k) => k + 1) // reload averages + history
     } catch {
       setStatus('Could not save. Please try again.')
     }
@@ -184,6 +282,21 @@ function App() {
       </div>
     )
   }
+
+  const rangeButtons = (
+    <div className="range-buttons">
+      {[7, 28, 90].map((n) => (
+        <button
+          key={n}
+          type="button"
+          className={`range-button ${rangeDays === n ? 'active' : ''}`}
+          onClick={() => setRangeDays(n)}
+        >
+          {n} days
+        </button>
+      ))}
+    </div>
+  )
 
   return (
     <>
@@ -227,10 +340,63 @@ function App() {
 
       <div className='middle' id='middle-div'>
         <h1>Average Hours</h1>
+        {rangeButtons}
+        {historyStatus ? (
+          <p className="status-message">{historyStatus}</p>
+        ) : averages.days === 0 ? (
+          <p className="status-message">No entries in the last {rangeDays} days.</p>
+        ) : (
+          <div className="stats-grid">
+            <div className="stat-card"><span className="stat-label">Days logged</span><span className="stat-value">{averages.days}</span></div>
+            <div className="stat-card"><span className="stat-label">Avg work</span><span className="stat-value">{fmtMinutes(averages.work)}</span></div>
+            <div className="stat-card"><span className="stat-label">Avg drive</span><span className="stat-value">{fmtMinutes(averages.drive)}</span></div>
+            <div className="stat-card"><span className="stat-label">Avg rest</span><span className="stat-value">{fmtMinutes(averages.rest)}</span></div>
+            <div className="stat-card"><span className="stat-label">Avg miles</span><span className="stat-value">{averages.miles == null ? '-' : Math.round(averages.miles)}</span></div>
+          </div>
+        )}
       </div>
 
       <div className='bottom' id='bottom-div'>
         <h1>History</h1>
+        {history.length === 0 ? (
+          <p className="status-message">Nothing to show yet.</p>
+        ) : (
+          <div className="history-scroll">
+            <table className="history-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Card in/out</th>
+                  <th>Work</th>
+                  <th>Drive</th>
+                  <th>Rest</th>
+                  <th>Miles</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((row) => {
+                  const d = row.data
+                  const miles = milesFor(d)
+                  return (
+                    <tr
+                      key={row.log_date}
+                      className={row.log_date === dateString ? 'selected' : ''}
+                      onClick={() => setStartDate(fromDateString(row.log_date))}
+                      title="Click to edit this day"
+                    >
+                      <td>{prettyDate(row.log_date)}</td>
+                      <td>{fmtClock(d.cardIn)} - {fmtClock(d.cardOut)}</td>
+                      <td>{fmtMinutes(toMinutes(d.workTime))}</td>
+                      <td>{fmtMinutes(toMinutes(d.driveTime))}</td>
+                      <td>{fmtMinutes(toMinutes(d.rest))}</td>
+                      <td>{miles == null ? '-' : miles}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
     </>
