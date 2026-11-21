@@ -6,12 +6,11 @@ import './index.css'
 import App from './App.jsx'
 
 const oidcConfig = {
-  authority: 'https://auth.matthewlanderyou.dedyn.io/application/o/<your-slug>/',
-  client_id: '<your-client-id>',
-  redirect_uri: window.location.origin,
-  post_logout_redirect_uri: window.location.origin,
+  authority: 'https://auth.matthewlanderyou.dedyn.io/application/o/tracky/',
+  client_id: 'qHmAt1U6kbbOzN0LtQU0UHbmLUxQk1UqFE7WPMsJ',
+  redirect_uri: window.location.origin + '/',
+  post_logout_redirect_uri: window.location.origin + '/',
   scope: 'openid profile email',
-  // Removes ?code=...&state=... from the URL after login.
   onSigninCallback: () => {
     window.history.replaceState({}, document.title, window.location.pathname)
   },
