@@ -61,12 +61,8 @@ const milesFor = (d) => {
   return diff >= 0 ? diff : null
 }
 
-// Average of the non-null values in a list.
-const average = (values) => {
-  const v = values.filter((x) => x != null)
-  if (v.length === 0) return null
-  return v.reduce((a, b) => a + b, 0) / v.length
-}
+// Total of the non-null values in a list.
+const sum = (values) => values.reduce((a, b) => a + (b ?? 0), 0)
 
 // Reusable hours+minutes field (used for durations AND clock times).
 function TimeField({ title, hoursMax, value, onChange, idPrefix, className = '' }) {
@@ -152,7 +148,7 @@ function App() {
   // Message under the Submit button.
   const [status, setStatus] = useState('')
 
-  // Average Hours + History: how many days back to look, the rows, and a refresh counter.
+  // Total Hours + History: how many days back to look, the rows, and a refresh counter.
   const [rangeDays, setRangeDays] = useState(7)
   const [history, setHistory] = useState([])
   const [historyStatus, setHistoryStatus] = useState('')
@@ -195,7 +191,7 @@ function App() {
     return () => { cancelled = true }
   }, [dateString, isAuthed])
 
-  // LOADING (range): fills Average Hours and History. Re-runs when the range
+  // LOADING (range): fills Total Hours and History. Re-runs when the range
   // changes or after a save (refreshKey).
   useEffect(() => {
     if (!isAuthed) return
@@ -225,15 +221,15 @@ function App() {
     return () => { cancelled = true }
   }, [isAuthed, rangeDays, refreshKey])
 
-  // Averages worked out from the history rows.
-  const averages = useMemo(() => {
+  // Totals worked out from the history rows.
+  const totals = useMemo(() => {
     const entries = history.map((r) => r.data)
     return {
       days: entries.length,
-      work: average(entries.map((d) => toMinutes(d.workTime))),
-      drive: average(entries.map((d) => toMinutes(d.driveTime))),
-      rest: average(entries.map((d) => toMinutes(d.rest))),
-      miles: average(entries.map(milesFor)),
+      work: sum(entries.map((d) => toMinutes(d.workTime))),
+      drive: sum(entries.map((d) => toMinutes(d.driveTime))),
+      rest: sum(entries.map((d) => toMinutes(d.rest))),
+      miles: sum(entries.map(milesFor)),
     }
   }, [history])
 
@@ -252,7 +248,7 @@ function App() {
       })
       if (!res.ok) throw new Error('save failed')
       setStatus('Saved')
-      setRefreshKey((k) => k + 1) // reload averages + history
+      setRefreshKey((k) => k + 1) // reload totals + history
     } catch {
       setStatus('Could not save. Please try again.')
     }
@@ -285,7 +281,7 @@ function App() {
 
   const rangeButtons = (
     <div className="range-buttons">
-      {[7, 28, 90].map((n) => (
+      {[7, 14].map((n) => (
         <button
           key={n}
           type="button"
@@ -339,20 +335,22 @@ function App() {
       </div>
 
       <div className='middle' id='middle-div'>
-        <h1>Average Hours</h1>
+        <h1>Total Hours</h1>
         {rangeButtons}
         {historyStatus ? (
           <p className="status-message">{historyStatus}</p>
-        ) : averages.days === 0 ? (
+        ) : totals.days === 0 ? (
           <p className="status-message">No entries in the last {rangeDays} days.</p>
         ) : (
-          <div className="stats-grid">
-            <div className="stat-card"><span className="stat-label">Days logged</span><span className="stat-value">{averages.days}</span></div>
-            <div className="stat-card"><span className="stat-label">Avg work</span><span className="stat-value">{fmtMinutes(averages.work)}</span></div>
-            <div className="stat-card"><span className="stat-label">Avg drive</span><span className="stat-value">{fmtMinutes(averages.drive)}</span></div>
-            <div className="stat-card"><span className="stat-label">Avg rest</span><span className="stat-value">{fmtMinutes(averages.rest)}</span></div>
-            <div className="stat-card"><span className="stat-label">Avg miles</span><span className="stat-value">{averages.miles == null ? '-' : Math.round(averages.miles)}</span></div>
-          </div>
+          <>
+            <p className="days-logged">{totals.days} {totals.days === 1 ? 'day' : 'days'} logged</p>
+            <div className="stats-grid">
+              <div className="stat-card"><span className="stat-label">Work</span><span className="stat-value">{fmtMinutes(totals.work)}</span></div>
+              <div className="stat-card"><span className="stat-label">Drive</span><span className="stat-value">{fmtMinutes(totals.drive)}</span></div>
+              <div className="stat-card"><span className="stat-label">Rest</span><span className="stat-value">{fmtMinutes(totals.rest)}</span></div>
+              <div className="stat-card"><span className="stat-label">Miles</span><span className="stat-value">{totals.miles}</span></div>
+            </div>
+          </>
         )}
       </div>
 

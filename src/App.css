@@ -31,6 +31,7 @@ Styles for element classes.
 
 .content-div {
   text-align: left;
+  width: 100%;
   max-width: 900px;
   margin: 0 auto;
   padding: 0 16px;
@@ -175,7 +176,7 @@ Styles for element ids.
 }
 
 /*
-Average Hours and History.
+Total Hours and History.
 */
 .range-buttons {
   display: flex;
@@ -199,9 +200,15 @@ Average Hours and History.
   color: #fff;
 }
 
+.days-logged {
+  margin: 0 0 12px;
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
 }
 
@@ -212,6 +219,7 @@ Average Hours and History.
   padding: 12px;
   border: 1px solid #8884;
   border-radius: 8px;
+  min-width: 0;
 }
 
 .stat-label {
@@ -279,5 +287,9 @@ Responsive breakpoints for phones/small tablets.
 
   #title-div {
     margin-bottom: 24px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
